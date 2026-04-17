@@ -1,0 +1,62 @@
+[
+  {
+    "user_input": "Hi! I'm Tom, I work as a data scientist in San Francisco.",
+    "agent_response": "Hello Tom! Nice to meet you. Data science is such an exciting field. What kind of data do you work with?",
+    "timestamp": "2026-02-04 17:41:28",
+    "meta_data": {
+      "G": 0.5,
+      "L": 161,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  },
+  {
+    "user_input": "What do you remember about my job?",
+    "agent_response": "Error: Could not get response from LLM.",
+    "timestamp": "2026-02-04 17:42:01",
+    "meta_data": {
+      "G": 0.5,
+      "L": 73,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  },
+  {
+    "user_input": "Hi! I'm Tom, I work as a data scientist in San Francisco.",
+    "agent_response": "Hello Tom! Nice to meet you. Data science is such an exciting field. What kind of data do you work with?",
+    "timestamp": "2026-02-08 13:52:13",
+    "meta_data": {
+      "G": 0.5,
+      "L": 161,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  },
+  {
+    "user_input": "What do you remember about my job?",
+    "agent_response": "Error: Could not get response from LLM.",
+    "timestamp": "2026-02-08 13:52:46",
+    "meta_data": {
+      "G": 0.5,
+      "L": 73,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  },
+  {
+    "user_input": "Hi! I'm Tom, I work as a data scientist in San Francisco.",
+    "agent_response": "Hello Tom! Nice to meet you. Data science is such an exciting field. What kind of data do you work with?",
+    "timestamp": "2026-02-08 13:55:56",
+    "meta_data": {
+      "G": 0.5,
+      "L": 161,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  },
+  {
+    "user_input": "What do you remember about my job?",
+    "agent_response": "Error: Could not get response from LLM.",
+    "timestamp": "2026-02-08 13:56:29",
+    "meta_data": {
+      "G": 0.5,
+      "L": 73,
+      "reason": "Evaluation failed (Fallback)"
+    }
+  }
+]

@@ -1,0 +1,175 @@
+import time
+import math
+import json
+from dataclasses import dataclass, field, asdict
+from typing import List, Dict, Any, Optional
+
+@dataclass
+class EvalMetadata:
+    # 核心三维指标
+    G_base: float = 0.5  # Salience (显著性)
+    C_base: float = 1.0  # Confidence (置信度)
+    L_base: float = 0.1  # Cost (Token成本)
+    
+    access_count: int = 0
+    conflict_count: int = 0
+    last_access_time: float = field(default_factory=time.time)
+    sketch: Dict[str, Any] = field(default_factory=dict) # 弱语义草图
+
+class EvaluationController:
+    """
+    [Layer 3] Agentic Memory System - Staged Evaluation Controller (v2.0)
+    实现 G/C/L 指标的全生命周期管理
+    """
+    def __init__(self, memory_os_instance):
+        self.mos = memory_os_instance
+        self.sp = self.mos.short_term_memory
+        self.fp = self.mos.forget_memory
+        self.L_budget = 2000  # Stage 2 Context Budget
+
+    # ==========================================
+    # --- Stage 1: Input & Admission (Entry) ---
+    # ==========================================
+    def on_new_input(self, user_input: str, agent_response: str) -> str:
+        """
+        对应 Stage 1: Fast, Low Precision
+        """
+        # 1. Weak Semantic Sketch Extraction
+        sketch = {
+            "entities": [w for w in ["python", "rust", "project", "architecture"] if w in user_input.lower()],
+            "intent": "inform" if len(user_input) > 20 else "query"
+        }
+
+        # 2. Initial Metric Computation (G0, C0, L)
+        l_cost = len(user_input) + len(agent_response) 
+        g0_score = 0.3
+        if sketch["entities"]: g0_score += 0.4
+        if "i am" in user_input.lower(): g0_score += 0.2
+        
+        # 3. Admission Decision
+        meta = EvalMetadata(
+            G_base=min(1.0, g0_score),
+            C_base=0.8, 
+            L_base=l_cost,
+            sketch=sketch
+        )
+        meta_dict = asdict(meta)
+
+        if g0_score >= 0.4:
+            # Enter active candidate set
+            self.mos.original_add_memory(user_input, agent_response, meta_data=meta_dict)
+            return "ACCEPTED_SP"
+        else:
+            # Store raw text in Forget Pool only
+            self.fp.add(user_input=user_input, agent_response=agent_response, metadata=meta_dict)
+            return "DISCARDED_TO_FP"
+
+    # ==========================================
+    # --- Stage 2: Context Construction (Pre) ---
+    # ==========================================
+    def on_retrieve(self, query: str, top_k: int = 5):
+        """
+        对应 Stage 2: Pre-Inference Ranking
+        """
+        raw_results = self.mos.retriever.retrieve_context(query, self.mos.user_id)
+        raw_pages = raw_results.get("retrieved_pages", [])
+        
+        if not raw_pages: return raw_results
+            
+        scored_candidates = []
+        for page in raw_pages:
+            meta = page.get('meta_data', {})
+            
+            # G1: Query-conditioned salience
+            vec_score = page.get('score', 0.5)
+            g1 = (vec_score * 0.6) + (meta.get('G_base', 0.5) * 0.4)
+            
+            # C1: Conflict-adjusted confidence
+            c1 = meta.get('C_base', 0.8)
+            if self._detect_conflict_tension(query, page):
+                c1 *= 0.5 
+                page['_conflict_alert'] = True
+
+            # Rank by G1 / L
+            l_cost = meta.get('L_base', 100)
+            rank_score = g1 / (math.log(l_cost + 1) + 1e-6)
+            
+            scored_candidates.append({
+                "page": page,
+                "rank_score": rank_score,
+                "l": l_cost
+            })
+            
+        # Select within Context Window
+        scored_candidates.sort(key=lambda x: x["rank_score"], reverse=True)
+        final_pages = []
+        total_l = 0
+        for item in scored_candidates:
+            if total_l + item["l"] <= self.L_budget:
+                final_pages.append(item["page"])
+                total_l += item["l"]
+            else:
+                break 
+        
+        raw_results["retrieved_pages"] = final_pages
+        return raw_results
+
+    # ==========================================
+    # --- Stage 4: Post-Inference Evaluation ---
+    # ==========================================
+    def on_post_inference(self, page_ids: List[str], feedback_score: float = 1.0):
+        """
+        对应 Stage 4: High Precision, Asynchronous
+        """
+        print(f"   [Evaluation] Stage 4: Processing memory flow decisions...")
+        
+        for pid in page_ids:
+            # 1. Post-Inference Metric Update
+            page = self.mos.get_memory_by_id(pid)
+            if not page: continue
+            
+            meta = page.get('meta_data', {})
+            # G2: Usage and feedback adjusted salience
+            meta['G_base'] = min(1.0, meta.get('G_base', 0.5) + 0.1)
+            
+            # C2: Confidence update via feedback
+            meta['C_base'] = (meta.get('C_base', 0.8) * 0.7) + (feedback_score * 0.3)
+            meta['access_count'] = meta.get('access_count', 0) + 1
+            meta['last_access_time'] = time.time()
+
+            # 2. Memory Flow Decision
+            decision = self._make_flow_decision(meta)
+            
+            if decision == "COMPRESS":
+                # High G2, High C2, High L -> Long-term
+                print(f"      -> Decision: COMPRESS {pid} to Long-term Memory")
+                self.mos.long_term_memory.add_from_page(page)
+                self.mos.short_term_memory.evict(pid, to_forget_pool=True)
+                
+            elif decision == "RETAIN_EVIDENCE":
+                # High G2, Low C2 (争议内容) -> Retain in ST as pruned text
+                print(f"      -> Decision: RETAIN {pid} in Short-term as evidence")
+                page['content'] = self._prune_text(page['content']) # 精简原文
+                
+            elif decision == "EVICT":
+                # Low G2 -> Evict to Forget Pool only
+                print(f"      -> Decision: EVICT {pid} to Forget Pool")
+                self.mos.short_term_memory.evict(pid, to_forget_pool=True)
+
+    def _make_flow_decision(self, meta: Dict) -> str:
+        """根据 G2, C2, L 进行判定"""
+        g2, c2, l = meta.get('G_base', 0), meta.get('C_base', 0), meta.get('L_base', 0)
+        
+        if g2 > 0.8 and c2 > 0.7 and l > 500: return "COMPRESS"
+        if g2 > 0.7 and c2 < 0.4: return "RETAIN_EVIDENCE"
+        if g2 < 0.3: return "EVICT"
+        return "PENDING"
+
+    def _prune_text(self, text: str) -> str:
+        """精简文本（保留关键句证据）"""
+        return text[:200] + "... (pruned)"
+
+    def _detect_conflict_tension(self, query: str, page: Dict) -> bool:
+        """冲突检测逻辑"""
+        q_text = query.lower()
+        return any(x in q_text for x in ["not", "change", "wrong", "instead"])

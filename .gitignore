@@ -1,0 +1,47 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Runtime logs and crash dumps
+*.log
+logs/
+core.*
+*.pid
+
+# Large datasets and evaluation artifacts
+data/hotpot/hotpot_train_v1.1.json
+data/hotpot/hotpot_dev_distractor_v1.json
+data/hotpot/hotpot_dev_fullwiki_v1.json
+data/musique/musique_ans_v1.0_train.jsonl
+data/musique/musique_ans_v1.0_dev.jsonl
+eval_results_hotpot/
+
+# Generated local databases and experiment outputs
+.mem0_chroma_smoke/
+*.sqlite3
+*.db
+trace_outputs/
+tmp_*/
+reports/**/chroma/
+reports/**/history.db
+eval_storage/
+eval_storage_v2/
+fast_eval_storage/
+hotpot_eval_storage*/
+musique_eval_storage*/
+memoryos_data/
+memoryos_data_test/
+
+# Generated report artifacts
+reports/
+benchmark_report*.json
+data/hotpot/hotpot_benchmark_report.json
+locomo_report*.json
+locomo_full_report*.json
+locomo_experiment_comparison_*.csv
+locomo_experiment_conclusions_*.md
+locomo_final_table_*.md
+experiment_results.csv
+memoryos_experiment_metrics.csv
+memoryos_final_results.csv
+amem_hotpot_traces.jsonl

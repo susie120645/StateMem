@@ -1,0 +1,58 @@
+{
+  "dataset": "/masiqi/code/jsr/MemoryOS/memoryos-mcp/data/hotpot/hotpot_dev_distractor_v1.json",
+  "start_index": 0,
+  "count": 1,
+  "ollama_base": "http://localhost:11434/v1",
+  "llm_model": "qwen2.5:7b",
+  "embedding_model": "nomic-embed-text",
+  "overall": {
+    "em": 0.0,
+    "f1": 0.0,
+    "latency_sec": 5.0953
+  },
+  "records": [
+    {
+      "dataset_index": 0,
+      "sample_id": "5a8b57f25542995d1e6f1371",
+      "question": "Were Scott Derrickson and Ed Wood of the same nationality?",
+      "answer": "yes",
+      "prediction": "I don't know.",
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_sec": 5.0953,
+      "ingested_contexts": 3,
+      "retrieved_pages": 3,
+      "citations": [],
+      "hit_ids": [
+        "doc_4b0194ec85b24f3a",
+        "doc_b80a9f3073db48b1",
+        "doc_821d8be1e7f04cf1"
+      ],
+      "reflection": {
+        "query": "Were Scott Derrickson and Ed Wood of the same nationality?",
+        "answer": {
+          "groundedness": 0.44,
+          "coverage": 0.38,
+          "utility": 0.335
+        },
+        "nli": {
+          "checked_ids": [],
+          "entailment": [],
+          "contradiction": [],
+          "neutral": [],
+          "skipped": [],
+          "alignment_score": 0.5,
+          "contradiction_ratio": 0.0,
+          "coverage_ratio": 0.0
+        },
+        "memory": {
+          "memory_score": 0.381,
+          "recommended_destination": "short_term",
+          "summary": "3 retrieved hits without citations; answer remained unresolved"
+        },
+        "base_feedback_score": 0.3,
+        "feedback_score": 0.3486
+      }
+    }
+  ]
+}

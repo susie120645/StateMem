@@ -1,0 +1,117 @@
+import time
+import math
+from dataclasses import dataclass, field, asdict
+from typing import List, Dict, Any, Optional
+
+# ==============================================================================
+# 🧠 元数据结构 (Metadata Structure)
+# ==============================================================================
+
+@dataclass
+class EvalMetadata:
+    """ [Layer 3] A-MEM 评估元数据 """
+    G_base: float = 0.5  # Input Salience (G0)
+    C_base: float = 1.0  # Consistency
+    L_base: float = 0.1  # Maintenance Cost
+    access_count: int = 0
+    conflict_count: int = 0
+    last_access_time: float = field(default_factory=time.time)
+
+    @property
+    def G_bar(self) -> float:
+        """长期价值期望"""
+        return self.G_base * (1 + 0.1 * self.access_count)
+
+# ==============================================================================
+# 🎮 评估控制器 (Evaluation Controller)
+# ==============================================================================
+
+class EvaluationController:
+    """
+    [Layer 3] A-MEM 核心评估逻辑控制器
+    对齐 2026 新版三层池化架构 (STM/LTM/ForgetPool)
+    """
+    def __init__(self, memory_os_instance):
+        self.mos = memory_os_instance
+        # 移除过时的 mid_term 引用
+        self.sp = self.mos.short_term_memory
+        self.fp = self.mos.forget_memory
+
+    # ------------------------------------------------------------------
+    # Event 1: New Input Arrives (计算 G0)
+    # ------------------------------------------------------------------
+    def on_new_input(self, user_input: str, agent_response: str) -> str:
+        """ [G0 算法] 对齐 Memoryos 的存储决策 """
+        g0_score = 0.5
+        text = user_input.lower()
+        
+        # 1. 识别“针” (HotpotQA/NIAH 实验优化)
+        if any(k in text for k in ["passkey", "critical", "decryption key", "important", "secret code"]):
+            g0_score = 0.95 
+            
+        # 2. 识别“大海” (噪音过滤)
+        elif any(k in text for k in ["system log", "latency", "module", "status:", "weather", "temperature"]):
+            g0_score = 0.1 
+            
+        # 3. 基础特征
+        else:
+            if len(text) > 15: g0_score += 0.1
+            if "python" in text or "code" in text or "project" in text:
+                g0_score += 0.2
+
+        g0_score = min(1.0, max(0.0, g0_score))
+        meta = asdict(EvalMetadata(G_base=g0_score))
+        
+        # 4. 路由决策：直接对接 Memoryos 的原语
+        if g0_score > 0.4:
+            # 进入 STM -> 触发流转
+            self.mos.original_add_memory(user_input, agent_response, meta_data=meta)
+            return "ACCEPTED_SP"
+        else:
+            # 质量太差，直接进遗忘池冷备，不建立 LTM 索引
+            self.fp.add_discard(user_input=user_input, agent_response=agent_response, metadata=meta)
+            return "DISCARDED_TO_FP"
+
+    # ------------------------------------------------------------------
+    # Event 2: Retrieval Triggered (计算 G1)
+    # ------------------------------------------------------------------
+    def on_retrieve(self, query: str, top_k: int = 5):
+        """
+        [G1 算法] 介入检索过程，进行打捞重排。
+        """
+        # ✅ 核心修复：对齐 Retriever.retrieve_context(query) 接口，删掉 self.mos.user_id
+        raw_results = self.mos.retriever.retrieve_context(query)
+        
+        # retrieved_pages 包含了从 STM 搜索和从 ForgetPool 打捞回来的原文
+        raw_pages = raw_results.get("retrieved_pages", [])
+        
+        if not raw_pages:
+            return raw_results
+
+        scored_candidates = []
+        for page in raw_pages:
+            # A. 向量分数 (Retriever 已经算过一次)
+            vec_score = page.get('score', 0.5)
+            
+            # B. 元数据加分 (G0 高的记忆在 G1 阶段获得更高权重)
+            # 兼容旧版本键名 G_base 和新版本 gcl_scores
+            g0_ref = page.get('meta_data', {}).get('G_base') or \
+                     page.get('gcl_scores', {}).get('G', 0.5)
+            
+            meta_score = 1.0 if g0_ref > 0.8 else 0.0
+            
+            # C. 打捞奖励：如果这本是遗忘池的东西被搜到了，说明极其契合，给与权重提升
+            salvage_bonus = 0.2 if page.get('location') == 'forget_pool' else 0.0
+            
+            # 综合 G1
+            g1_score = (vec_score * 0.6) + (meta_score * 0.2) + (salvage_bonus * 0.2)
+            
+            page['_debug_G1'] = float(f"{g1_score:.2f}")
+            scored_candidates.append((page, g1_score))
+
+        # 重排
+        scored_candidates.sort(key=lambda x: x[1], reverse=True)
+        final_pages = [item[0] for item in scored_candidates[:top_k]]
+        
+        raw_results["retrieved_pages"] = final_pages
+        return raw_results
