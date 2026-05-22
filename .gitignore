@@ -31,6 +31,7 @@ hotpot_eval_storage*/
 musique_eval_storage*/
 memoryos_data/
 memoryos_data_test/
+models/
 
 # Generated report artifacts
 reports/
@@ -45,3 +46,11 @@ experiment_results.csv
 memoryos_experiment_metrics.csv
 memoryos_final_results.csv
 amem_hotpot_traces.jsonl
+
+# Local binaries, backups, and embedded repos that should not be pushed to GitHub
+ollama-linux-amd64.tar.zst
+ollama_bin/
+environment_backup_20260420/
+environment_backup_20260421/
+mobileCodexHelper/
+third_party/

@@ -18,8 +18,10 @@ try:
         generate_id,
         get_embedding,
         get_timestamp,
+        extract_temporal_canonical_forms,
         normalize_keyword_values,
         normalize_vector,
+        write_json_with_backup,
     )
 except ImportError:
     from entity_filters import filter_entity_values, filter_semantic_edge_values
@@ -30,8 +32,10 @@ except ImportError:
         generate_id,
         get_embedding,
         get_timestamp,
+        extract_temporal_canonical_forms,
         normalize_keyword_values,
         normalize_vector,
+        write_json_with_backup,
     )
 
 
@@ -46,11 +50,13 @@ class LongTermMemory:
         knowledge_capacity: int = 5000,
         embedding_model_name: str = "BAAI/bge-m3",
         embedding_model_kwargs: Optional[dict] = None,
+        enable_backups: bool = True,
     ):
         self.file_path = self._resolve_storage_path(file_path)
         self.knowledge_capacity = knowledge_capacity
         self.embedding_model_name = embedding_model_name
         self.embedding_model_kwargs = embedding_model_kwargs or {}
+        self.enable_backups = bool(enable_backups)
         self.data: Dict[str, Any] = {
             "version": 2,
             "user_profile": "None",
@@ -97,8 +103,13 @@ class LongTermMemory:
     def save(self):
         ensure_directory_exists(self.file_path)
         try:
-            with open(self.file_path, "w", encoding="utf-8") as f:
-                json.dump(self.data, f, ensure_ascii=False, indent=2)
+            write_json_with_backup(
+                self.file_path,
+                self.data,
+                ensure_ascii=False,
+                indent=2,
+                create_backup=self.enable_backups,
+            )
         except Exception as exc:
             print(f"Error saving long-term memory: {exc}", file=sys.stderr)
 
@@ -238,6 +249,10 @@ class LongTermMemory:
                 "pointer_to": normalized["pointer_to"],
             }
         )
+        if not isinstance(normalized["metadata"].get("temporal_forms"), list):
+            normalized["metadata"]["temporal_forms"] = extract_temporal_canonical_forms(
+                f"{normalized.get('summary', '')}\n{normalized.get('raw_content', '')}"
+            )
         return normalized
 
     def _extract_keywords(self, text: str) -> List[str]:
@@ -366,7 +381,7 @@ class LongTermMemory:
 
         return entry
 
-    def record_access(self, node_ids: List[str], temperature_boost: float = 8.0):
+    def record_access(self, node_ids: List[str], temperature_boost: float = 8.0, persist: bool = True):
         changed = False
         now = get_timestamp()
         for node_id in node_ids:
@@ -378,7 +393,7 @@ class LongTermMemory:
             entry["T"] = min(100.0, float(entry.get("T", 0.0)) + temperature_boost)
             entry["storage_tier"] = "hot" if entry["T"] >= self.HOT_TEMPERATURE_THRESHOLD else "cold"
             changed = True
-        if changed:
+        if changed and persist:
             self.save()
 
     def search_knowledge(
@@ -387,18 +402,24 @@ class LongTermMemory:
         top_k: int = 8,
         threshold: float = 0.0,
         include_cold: bool = True,
+        query_embedding: Optional[np.ndarray] = None,
     ) -> List[Dict[str, Any]]:
         if not query:
             return []
 
-        query_embedding = np.array(
-            get_embedding(query, self.embedding_model_name, **self.embedding_model_kwargs),
-            dtype=np.float32,
-        )
+        if query_embedding is None:
+            query_embedding = np.array(
+                get_embedding(query, self.embedding_model_name, **self.embedding_model_kwargs),
+                dtype=np.float32,
+            )
+        else:
+            query_embedding = np.asarray(query_embedding, dtype=np.float32)
         if query_embedding.size == 0:
-            query_embedding = np.zeros(768, dtype=np.float32)
+            query_embedding = np.zeros(0, dtype=np.float32)
 
         query_terms = set(self._extract_keywords(query))
+        query_entities = {ent.lower() for ent in self._extract_entities(query)}
+        query_lower = query.lower().strip()
         results = []
         searchable_types = {"document", "chunk", "summary"}
 
@@ -410,7 +431,7 @@ class LongTermMemory:
 
             item_embedding = np.array(entry.get("embedding", []), dtype=np.float32)
             semantic_score = 0.0
-            if item_embedding.size and query_embedding.size:
+            if item_embedding.size and query_embedding.size and item_embedding.shape == query_embedding.shape:
                 denom = float(np.linalg.norm(query_embedding) * np.linalg.norm(item_embedding))
                 if denom > 0:
                     semantic_score = float(np.dot(query_embedding, item_embedding) / denom)
@@ -420,12 +441,99 @@ class LongTermMemory:
             if query_terms and entry_terms:
                 keyword_score = len(query_terms & entry_terms) / float(len(query_terms))
 
-            relevance = (semantic_score * 0.72) + (keyword_score * 0.28)
+            entry_entities = {ent.lower() for ent in entry.get("entities", []) if isinstance(ent, str)}
+            entity_score = 0.0
+            if query_entities and entry_entities:
+                entity_score = len(query_entities & entry_entities) / float(len(query_entities))
+
+            haystack = " ".join(
+                [
+                    str(entry.get("summary", "")),
+                    str(entry.get("raw_content", "")),
+                ]
+            ).lower()
+            exact_bonus = 0.04 if query_lower and query_lower in haystack else 0.0
+            surface_score = 0.0
+            if query_terms:
+                haystack_terms = entry_terms or set(fallback_extract_keywords(haystack, limit=48))
+                if haystack_terms:
+                    surface_score = len(query_terms & haystack_terms) / float(len(query_terms))
+
+            relevance = (
+                (semantic_score * 0.56)
+                + (keyword_score * 0.18)
+                + (entity_score * 0.12)
+                + (surface_score * 0.14)
+                + exact_bonus
+            )
             if relevance < threshold:
                 continue
 
             candidate = dict(entry)
             candidate["semantic_score"] = round(semantic_score, 4)
+            candidate["keyword_score"] = round(keyword_score, 4)
+            candidate["entity_score"] = round(entity_score, 4)
+            candidate["surface_score"] = round(surface_score, 4)
+            candidate["exact_bonus"] = round(exact_bonus, 4)
+            candidate["score"] = round(relevance, 4)
+            results.append(candidate)
+
+        results.sort(key=lambda item: item.get("score", 0.0), reverse=True)
+        return results[:top_k]
+
+    def search_temporal(
+        self,
+        query: str,
+        top_k: int = 6,
+        threshold: float = 0.0,
+        include_cold: bool = True,
+    ) -> List[Dict[str, Any]]:
+        query_forms = set(extract_temporal_canonical_forms(query))
+        query_entities = {ent.lower() for ent in self._extract_entities(query)}
+        query_terms = set(self._extract_keywords(query))
+        temporal_hint = bool(query_forms)
+        if not temporal_hint and "when" not in str(query or "").lower() and "year" not in str(query or "").lower() and "how long" not in str(query or "").lower():
+            return []
+
+        results: List[Dict[str, Any]] = []
+        searchable_types = {"document", "chunk", "summary"}
+        for entry in self.data.get("knowledge_base", []):
+            if entry.get("node_type") not in searchable_types:
+                continue
+            if not include_cold and entry.get("storage_tier") == "cold":
+                continue
+
+            metadata = entry.get("metadata", {}) if isinstance(entry.get("metadata", {}), dict) else {}
+            entry_forms = set(metadata.get("temporal_forms", []) or extract_temporal_canonical_forms(f"{entry.get('summary', '')}\n{entry.get('raw_content', '')}"))
+            if not entry_forms:
+                continue
+
+            temporal_score = 0.0
+            if query_forms:
+                temporal_score = len(query_forms & entry_forms) / float(max(1, len(query_forms)))
+            elif temporal_hint:
+                temporal_score = 0.6
+
+            entry_entities = {ent.lower() for ent in entry.get("entities", []) if isinstance(ent, str)}
+            entity_score = 0.0
+            if query_entities and entry_entities:
+                entity_score = len(query_entities & entry_entities) / float(len(query_entities))
+
+            entry_terms = set(entry.get("keywords", []))
+            keyword_score = 0.0
+            if query_terms and entry_terms:
+                keyword_score = len(query_terms & entry_terms) / float(len(query_terms))
+
+            if temporal_score <= 0.0 and entity_score <= 0.0:
+                continue
+
+            relevance = (0.55 * temporal_score) + (0.25 * entity_score) + (0.20 * keyword_score)
+            if relevance < threshold:
+                continue
+
+            candidate = dict(entry)
+            candidate["temporal_score"] = round(temporal_score, 4)
+            candidate["entity_score"] = round(entity_score, 4)
             candidate["keyword_score"] = round(keyword_score, 4)
             candidate["score"] = round(relevance, 4)
             results.append(candidate)
@@ -506,6 +614,9 @@ class LongTermMemory:
         )
         document_keywords = stored_keywords or self._extract_keywords(f"{summary} {raw_content}")
         metadata["keywords"] = list(document_keywords)
+        metadata["temporal_forms"] = list(
+            metadata.get("temporal_forms") or extract_temporal_canonical_forms(f"{summary}\n{raw_content}")
+        )
 
         stored_entities = metadata.get("entities")
         if not isinstance(stored_entities, list):

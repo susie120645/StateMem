@@ -1,0 +1,20 @@
+{
+  "qmsum": {
+    "path": "/opt/data/private/Remem/datasets/qmsum/test.jsonl",
+    "meetings": 2,
+    "queries": 18,
+    "report_source": "/opt/data/private/Remem/reports/qmsum_remem-qwen3-8b_full_wrapper_20260507_1778165274.json",
+    "memory_sources": {
+      "meeting_fa4baf627588": "/opt/data/private/Remem/fast_eval_storage/qmsum_remem/remem-qwen3-8b/test_1778432470/users/qmsum_remem-qwen3-8b_1778432470/long_term/memory_graph.json",
+      "meeting_5f25da4a5947": "/opt/data/private/Remem/fast_eval_storage/qmsum_remem/remem-qwen3-8b/test_1778072991/users/qmsum_remem-qwen3-8b_1778072991/long_term/memory_graph.json",
+      "fladhak/qmsum_test_161": "/opt/data/private/Remem/fast_eval_storage/qmsum_remem/remem-qwen3-8b/test_1778054327/users/qmsum_remem-qwen3-8b_1778054327/long_term/memory_graph.json"
+    }
+  },
+  "dialsim-friends": {
+    "path": "/opt/data/private/Remem/datasets/dialsim/friends/train.jsonl",
+    "sessions": 784,
+    "questions": 788,
+    "report_source": "/opt/data/private/Remem/reports/dialsim_friends_remem-qwen3-8b_full_qnorm_1778000679.json",
+    "memory_source": "/opt/data/private/Remem/fast_eval_storage/dialsim_remem/remem-qwen3-8b/friends_1778000679/users/dialsim_remem-qwen3-8b_1778000679/long_term/memory_graph.json"
+  }
+}

@@ -193,6 +193,8 @@ def load_config(config_path: str) -> Dict[str, Any]:
         "embedding_model_name": "nomic-embed-text",
         "short_term_capacity": 20,
         "long_term_knowledge_capacity": 5000,
+        "keyword_ranker_path": None,
+        "enable_storage_backups": True,
     }
     if not config_path or not os.path.exists(config_path):
         return default_config
@@ -222,6 +224,8 @@ def main():
             embedding_model_name=config.get("embedding_model_name", "nomic-embed-text"),
             short_term_capacity=config.get("short_term_capacity", 20),
             long_term_knowledge_capacity=config.get("long_term_knowledge_capacity", 5000),
+            keyword_ranker_path=config.get("keyword_ranker_path"),
+            enable_storage_backups=config.get("enable_storage_backups", True),
         )
         clean_print(f"MemoryOS ready (user={config['user_id']})")
         mcp.run(transport="stdio")

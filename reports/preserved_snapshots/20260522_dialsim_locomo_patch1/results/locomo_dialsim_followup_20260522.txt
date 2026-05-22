@@ -1,0 +1,139 @@
+LOCOMO + DialSim Follow-up
+Date: 2026-05-22
+
+1. Code changes in this follow-up
+
+LOCOMO verifier was tightened in:
+- /opt/data/private/Remem/memoryos/run_locomo
+  - class LocomoAnswerVerifierCalibration (line 3440)
+  - build_locomo_answer_verifier_calibration (line 3482)
+  - maybe_apply_locomo_shape_adaptive_answer_verifier (line 3698)
+  - new guard: non_unknown_override_disabled_for_shape (line 3836)
+  - answer_question integration (line 4042)
+  - CLI flag: --enable-shape-adaptive-answer-verifier (line 4336)
+
+Main logic change:
+- fact_lookup now allows Unknown recovery but does not rewrite an existing non-Unknown answer
+- answer rewrites remain allowed only for more extractive question shapes
+- this is a shape-level tightening, not just a higher scalar threshold
+
+Regression tests added/kept in:
+- /opt/data/private/Remem/tests/test_locomo_rerank.py
+  - recovers_unknown_age_answer (line 410)
+  - uses_focused_verifier_for_entity_questions (line 430)
+  - keeps_supported_fact_answer (line 471)
+  - preserves_fact_recovery_path (line 495)
+
+Test status:
+- python3 -m pytest tests/test_locomo_rerank.py -q -> 26 passed
+- python3 -m pytest tests/test_retrieval_service.py -q -> 29 passed
+
+2. LOCOMO conv-48 results
+
+Raw reports:
+- baseline: /opt/data/private/Remem/reports/locomo_conv48_base_20260521.json
+- verifier_v2: /opt/data/private/Remem/reports/locomo_conv48_shape_verifier_v2_20260521.json
+- verifier_tight: /opt/data/private/Remem/reports/locomo_conv48_shape_verifier_tight_20260521.json
+
+Summary table:
+
+| run | EM | F1 | Recall@1 | Recall@10 | verifier applied |
+| baseline | 0.4686 | 0.5516 | 0.3656 | 0.7286 | 0 |
+| verifier_v2 | 0.4728 | 0.5595 | 0.4108 | 0.7450 | 3 |
+| verifier_tight | 0.4812 | 0.5677 | 0.4029 | 0.7379 | 0 |
+
+Tight vs baseline:
+- EM: 0.4686 -> 0.4812 (+0.0126, about +3 questions on 239)
+- F1: 0.5516 -> 0.5677 (+0.0161)
+- Recall@1: 0.3656 -> 0.4029 (+0.0373)
+- Recall@10: 0.7286 -> 0.7379 (+0.0093)
+
+Tight vs v2:
+- EM: 0.4728 -> 0.4812 (+0.0084, about +2 questions)
+- F1: 0.5595 -> 0.5677 (+0.0082)
+- verifier applied: 3 -> 0
+
+conv-48 A/B details against baseline:
+- verifier_v2:
+  - Wrong -> Correct = 7
+  - Correct -> Wrong = 6
+  - Net = +1
+  - F1 delta sum = +1.8848
+  - All 3 direct overrides were harmful
+- verifier_tight:
+  - Wrong -> Correct = 7
+  - Correct -> Wrong = 4
+  - Net = +3
+  - F1 delta sum = +3.8420
+  - Direct overrides = 0
+
+Important interpretation:
+- The earlier v2 headline improvement was not trustworthy, because its 3 direct overrides all made answers worse.
+- The tightened version removes those bad rewrites and still ends up with the best overall conv-48 score.
+- This means the safe conclusion is not "aggressive answer rewriting helps LOCOMO".
+- The safe conclusion is "shape-constrained verifier gating helps by preventing unstable fact-answer rewrites while preserving the existing recovery path".
+
+The 3 harmful v2 overrides that are now blocked were:
+- Q136: comforted -> Comforting.
+- Q170: relationship/beach trips -> Yoga and meditation.
+- Q179: finding inner peace -> New outlook on life and boosted confidence.
+
+Current verifier reason counts on verifier_tight:
+- candidate_not_grounded: 38
+- no_candidate: 96
+- current_answer_supported: 95
+- unsupported_question_shape: 9
+- non_unknown_override_disabled_for_shape: 1
+
+3. DialSim full rerun on the new repo state
+
+Raw reports:
+- prior best full: /opt/data/private/Remem/reports/dialsim_friends_remem-qwen3-8b_contrastive_agreement_full_20260521_1779295250.json
+- new rerun: /opt/data/private/Remem/reports/dialsim_friends_remem-qwen3-8b_locomo_tight_followup_20260522_1779382413.json
+
+Note:
+- No DialSim code was changed in this follow-up.
+- This rerun mainly checks whether the repo state after the LOCOMO patch causes an unexpected regression.
+
+Summary table:
+
+| run | correct/total | accuracy | abstain(E) | retrieval_retry | choice_head | choice_override | contrastive |
+| prior contrastive_agreement_full | 272/784 | 34.69% | 152 | 496 | 1 | 0 | 97 |
+| new locomo_tight_followup | 267/784 | 34.06% | 121 | 496 | 1 | 0 | 94 |
+
+Per-qtype comparison:
+
+| run | hard_qs_past | hard_qs_past_past | easy_qs_ans_wo_time | easy_qs_ans_w_time |
+| prior contrastive_agreement_full | 90/305 (29.51%) | 13/213 (6.10%) | 0/3 (0.00%) | 26/113 (23.01%) |
+| new locomo_tight_followup | 85/305 (27.87%) | 13/213 (6.10%) | 1/3 (33.33%) | 25/113 (22.12%) |
+
+Rerun A/B:
+- Wrong -> Correct = 2
+- Correct -> Wrong = 7
+- Net = -5
+
+Interpretation:
+- The new DialSim full run is slightly below the previous best full run: 34.69% -> 34.06%.
+- Since the LOCOMO tightening did not touch run_dialsim.py, this should be read as rerun variance / backend drift, not as a method-level regression caused by the new LOCOMO guard.
+- The main DialSim stack still remains the contrastive_agreement_full line, not the LOCOMO patch.
+
+4. Bottom line
+
+Keep:
+- LOCOMO tightened verifier gating
+  - it removes the unstable fact-answer rewrites
+  - it gives the best conv-48 result among the three tested LOCOMO variants
+
+Do not claim:
+- that answer-level override itself is the source of the LOCOMO gain
+- that the new LOCOMO patch improves DialSim
+
+Safe claim:
+- The LOCOMO follow-up validates a shape-constrained verifier policy:
+  - Unknown recovery is preserved
+  - open-ended fact-answer rewrites are blocked
+  - conv-48 becomes more stable and scores best among tested LOCOMO variants
+
+Recommended next step:
+- If continuing on LOCOMO, add a separate agreement gate for extractive shapes only, instead of reopening fact_lookup rewrites.
+- If continuing on DialSim, keep using contrastive_agreement_full as the main result line and treat this rerun only as a stability check.

@@ -276,4 +276,8 @@ class Updater:
                     "records": destinations,
                 }
             )
-        return route_info
+        return {
+            **route_info,
+            "page_id": page_id,
+            "doc_id": doc_id,
+        }

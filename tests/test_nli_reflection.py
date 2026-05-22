@@ -132,7 +132,7 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         if hasattr(self, "lifecycle"):
             self.lifecycle.shutdown()
 
-    def test_contradiction_reflection_demotes_memory_to_forget_pool(self):
+    def test_contradiction_reflection_cools_long_term_memory_without_forget_archive(self):
         page = {
             "page_id": "doc_bad",
             "citation_id": "doc_bad",
@@ -184,8 +184,8 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         )
         processed = result["processed"][0]
         self.assertEqual(processed["target_destination"], "forget_pool")
-        self.assertEqual(processed["action"], "ltm_demoted_to_cold_archive")
-        self.assertIn("doc_bad", self.forget_memory.records)
+        self.assertEqual(processed["action"], "ltm_cooled")
+        self.assertNotIn("doc_bad", self.forget_memory.records)
 
     def test_entailment_reflection_promotes_short_term_memory_to_long_term(self):
         raw_content = (
@@ -235,8 +235,9 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         )
         processed = result["processed"][0]
         self.assertEqual(processed["target_destination"], "long_term")
-        self.assertEqual(processed["action"], "stm_archived_to_forget_and_ltm_reinforced")
+        self.assertEqual(processed["action"], "stm_promoted_to_ltm_retained")
         self.assertTrue(self.long_term_memory.node_exists("doc_good"))
+        self.assertIsNotNone(self.short_term_memory.get_page_by_id("doc_good"))
 
 
 if __name__ == "__main__":

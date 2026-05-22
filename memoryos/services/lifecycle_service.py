@@ -515,6 +515,9 @@ class LifecycleService:
             return
         self._enqueue("nli_verify_citations", self.nli_verify_citations, generated_answer, citation_ids)
 
+    def schedule_metadata_enrichment(self, fn: Callable, *args, **kwargs) -> None:
+        self._enqueue("metadata_enrichment", fn, *args, **kwargs)
+
     def _retain_short_term_as_evidence(self, page_id: str, updated_g: float, updated_c: float) -> bool:
         page = self.short_term_memory.get_page_by_id(page_id)
         if not page:
@@ -617,8 +620,8 @@ class LifecycleService:
                         delta_T=12.0,
                     )
                 if location == "short_term":
-                    self.short_term_memory.evict(memory_id, to_forget_pool=True, forget_memory=self.forget_memory)
-                    action = "stm_archived_to_forget_and_ltm_reinforced"
+                    self._retain_short_term_as_evidence(memory_id, updated_g, updated_c)
+                    action = "stm_promoted_to_ltm_retained"
                 elif location == "forget_pool":
                     action = "forget_promoted_to_ltm"
                 else:
@@ -629,8 +632,7 @@ class LifecycleService:
                     action = "stm_evicted_to_forget"
                 elif citation_id and self.long_term_memory.node_exists(citation_id):
                     self.long_term_memory.adjust_chunk_metrics(citation_id, delta_G=-0.1, delta_C=-0.1, delta_T=-12.0)
-                    self._archive_to_forget_if_needed(memory_id, page)
-                    action = "ltm_demoted_to_cold_archive"
+                    action = "ltm_cooled"
             elif decision == "RETAIN_EVIDENCE":
                 if self._retain_short_term_as_evidence(memory_id, updated_g, updated_c):
                     action = "stm_retained_as_evidence"

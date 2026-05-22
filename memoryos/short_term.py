@@ -11,19 +11,27 @@ try:
         fallback_extract_keywords,
         get_timestamp,
         normalize_keyword_values,
+        write_json_with_backup,
     )
 except ImportError:
-    from utils import ensure_directory_exists, fallback_extract_keywords, get_timestamp, normalize_keyword_values
+    from utils import (
+        ensure_directory_exists,
+        fallback_extract_keywords,
+        get_timestamp,
+        normalize_keyword_values,
+        write_json_with_backup,
+    )
 
 
 class ShortTermMemory:
-    def __init__(self, file_path: str, max_capacity: int = 20):
+    def __init__(self, file_path: str, max_capacity: int = 20, enable_backups: bool = True):
         """
         [STM: 短期/工作记忆池]
         存储完整的对话原文。当容量满时，由 Updater 触发 G2 评分分流至 LTM 或 ForgetMemory。
         """
         self.max_capacity = max_capacity
         self.file_path = file_path
+        self.enable_backups = bool(enable_backups)
         self.memory: List[Dict[str, Any]] = []
         ensure_directory_exists(self.file_path)
         self.load()
@@ -209,8 +217,13 @@ class ShortTermMemory:
 
     def save(self):
         try:
-            with open(self.file_path, "w", encoding="utf-8") as f:
-                json.dump(self.memory, f, ensure_ascii=False, indent=2)
+            write_json_with_backup(
+                self.file_path,
+                self.memory,
+                ensure_ascii=False,
+                indent=2,
+                create_backup=self.enable_backups,
+            )
         except Exception as e:
             print(f"⚠️ [STM] Save error: {e}")
 

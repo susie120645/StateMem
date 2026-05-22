@@ -1,0 +1,22 @@
+Preserved snapshot: 20260522_dialsim_locomo_patch1
+
+Code copies
+- code/run_dialsim.py
+- code/run_locomo
+- code/test_run_dialsim.py
+- code/test_locomo_rerank.py
+
+Result copies
+- results/dialsim_friends_remem-qwen3-8b_contrastive_agreement_full_20260521_1779295250.json
+- results/dialsim_friends_remem-qwen3-8b_locomo_tight_followup_20260522_1779382413.json
+- results/dialsim_friends_remem-qwen3-8b_dialsim_citation_fallback_20260522_1779431200.json
+- results/dialsim_friends_remem-qwen3-8b_dialsim_citation_fallback_20260522_1779431200.csv
+- results/locomo_conv48_base_20260521.json
+- results/locomo_conv48_shape_verifier_v2_20260521.json
+- results/locomo_conv48_shape_verifier_tight_20260521.json
+- results/locomo_dialsim_followup_20260522.txt
+- results/dialsim_citation_fallback_followup_20260522.txt
+
+Notes
+- This snapshot preserves the DialSim and LOCOMO follow-up artifacts discussed on 2026-05-22.
+- The repository push excludes local binaries, local environment backups, and embedded repositories.
