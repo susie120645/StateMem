@@ -11,8 +11,8 @@ CURRENT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if CURRENT_ROOT not in sys.path:
     sys.path.insert(0, CURRENT_ROOT)
 
-from memoryos.keyword_ranker import LinearKeywordRanker, prepare_keyword_text, train_linear_ranker  # noqa: E402
-from memoryos.utils import normalize_keyword_values  # noqa: E402
+from statemem.keyword_ranker import LinearKeywordRanker, prepare_keyword_text, train_linear_ranker  # noqa: E402
+from statemem.utils import normalize_keyword_values  # noqa: E402
 
 
 def iter_records(path: str) -> Iterable[Dict[str, Any]]:
@@ -182,7 +182,7 @@ def main() -> None:
 
     model.save(args.output)
     print(f"Saved keyword ranker -> {args.output}")
-    print("To enable in MemoryOS, set config.json: keyword_ranker_path =", args.output)
+    print("To enable in statemem, set config.json: keyword_ranker_path =", args.output)
 
 
 if __name__ == "__main__":

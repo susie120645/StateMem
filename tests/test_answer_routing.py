@@ -1,12 +1,12 @@
 import unittest
 
-from memoryos.answer_routing import (
+from statemem.answer_routing import (
     build_answer_mode_instruction,
     normalize_generated_answer,
     resolve_effective_answer_format,
     resolve_effective_answer_mode,
 )
-from memoryos.query_routing import infer_task_routing_plan, resolve_effective_retrieval_mode
+from statemem.query_routing import infer_task_routing_plan, resolve_effective_retrieval_mode
 
 
 class AnswerRoutingTest(unittest.TestCase):

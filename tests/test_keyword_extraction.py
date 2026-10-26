@@ -4,10 +4,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from memoryos.forget_memory import ForgetMemory
-from memoryos.long_term import LongTermMemory
-from memoryos.memoryos import Memoryos
-from memoryos.short_term import ShortTermMemory
+from statemem.forget_memory import ForgetMemory
+from statemem.long_term import LongTermMemory
+from statemem.statemem import statemem
+from statemem.short_term import ShortTermMemory
 
 
 class _CountingEntityClient:
@@ -44,8 +44,8 @@ class _ExplodingClient:
 
 
 class KeywordExtractionFlowTest(unittest.TestCase):
-    def test_memoryos_keyword_extractor_uses_local_fallback_and_cache(self):
-        memo = Memoryos.__new__(Memoryos)
+    def test_statemem_keyword_extractor_uses_local_fallback_and_cache(self):
+        memo = statemem.__new__(statemem)
         memo.client = _ExplodingClient()
         memo.llm_model = "stub-model"
         memo._keyword_cache = {}
@@ -77,7 +77,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             store_path = os.path.join(tmpdir, "long_term")
-            with patch("memoryos.long_term.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.long_term.get_embedding", return_value=[0.0] * 768):
                 long_term = LongTermMemory(file_path=store_path)
                 long_term.keyword_extractor = extractor
                 long_term.add_knowledge(
@@ -101,7 +101,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
     def test_long_term_search_knowledge_uses_entity_score_in_hybrid_recall(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             store_path = os.path.join(tmpdir, "long_term")
-            with patch("memoryos.long_term.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.long_term.get_embedding", return_value=[0.0] * 768):
                 long_term = LongTermMemory(file_path=store_path)
                 long_term.entity_extractor = lambda text: ["Jolene"] if "Jolene" in text else []
                 long_term.keyword_extractor = lambda text: ["robotics project"] if "robotics project" in text.lower() else []
@@ -132,7 +132,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
     def test_long_term_search_knowledge_uses_exact_match_bonus_to_break_lexical_ties(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             store_path = os.path.join(tmpdir, "long_term")
-            with patch("memoryos.long_term.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.long_term.get_embedding", return_value=[0.0] * 768):
                 long_term = LongTermMemory(file_path=store_path)
                 long_term.entity_extractor = lambda text: []
                 long_term.keyword_extractor = lambda text: [
@@ -182,7 +182,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, "forget_pool.jsonl")
-            with patch("memoryos.forget_memory.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.forget_memory.get_embedding", return_value=[0.0] * 768):
                 forget_memory = ForgetMemory(file_path=file_path)
                 forget_memory.keyword_extractor = extractor
                 forget_memory.add_page(
@@ -263,7 +263,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
     def test_long_term_save_creates_backup_before_overwrite(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             store_path = os.path.join(tmpdir, "long_term")
-            with patch("memoryos.long_term.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.long_term.get_embedding", return_value=[0.0] * 768):
                 long_term = LongTermMemory(file_path=store_path)
                 long_term.add_knowledge(
                     {
@@ -284,7 +284,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
     def test_forget_memory_append_creates_backup_before_append(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, "forget_pool.jsonl")
-            with patch("memoryos.forget_memory.get_embedding", return_value=[0.0] * 768):
+            with patch("statemem.forget_memory.get_embedding", return_value=[0.0] * 768):
                 forget_memory = ForgetMemory(file_path=file_path)
                 forget_memory.add_page(
                     {
@@ -311,16 +311,16 @@ class KeywordExtractionFlowTest(unittest.TestCase):
         self.assertEqual([item["page_id"] for item in backup_lines], ["cold_1"])
 
     def test_entities_use_llm_extraction_and_cache_same_text(self):
-        memo = Memoryos.__new__(Memoryos)
+        memo = statemem.__new__(statemem)
         memo.client = _CountingEntityClient({"entities": ["Jolene", "qwen2.5:7b", "Paris"]})
         memo.llm_model = "stub-model"
         memo._entity_cache = {}
 
         first = memo._extract_entities(
-            "Jolene tested qwen2.5:7b in Paris and saved notes at /tmp/memoryos-mcp/logs."
+            "Jolene tested qwen2.5:7b in Paris and saved notes at /tmp/statemem-mcp/logs."
         )
         second = memo._extract_entities(
-            "Jolene tested qwen2.5:7b in Paris and saved notes at /tmp/memoryos-mcp/logs."
+            "Jolene tested qwen2.5:7b in Paris and saved notes at /tmp/statemem-mcp/logs."
         )
 
         self.assertEqual(first, ["Jolene", "qwen2.5:7b", "Paris"])
@@ -328,7 +328,7 @@ class KeywordExtractionFlowTest(unittest.TestCase):
         self.assertEqual(memo.client.calls, 1)
 
     def test_local_entity_extractor_captures_multi_token_titles_dates_and_identifiers(self):
-        memo = Memoryos.__new__(Memoryos)
+        memo = statemem.__new__(statemem)
         memo._entity_cache = {}
 
         entities = memo._extract_entities_local(
@@ -347,10 +347,10 @@ class KeywordExtractionFlowTest(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("memoryos.long_term.get_embedding", return_value=[0.0] * 768), patch(
-                "memoryos.forget_memory.get_embedding", return_value=[0.0] * 768
+            with patch("statemem.long_term.get_embedding", return_value=[0.0] * 768), patch(
+                "statemem.forget_memory.get_embedding", return_value=[0.0] * 768
             ):
-                memo = Memoryos(
+                memo = statemem(
                     user_id="keyword-user",
                     openai_api_key="ollama",
                     data_storage_path=tmpdir,

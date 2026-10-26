@@ -11,9 +11,9 @@ into:
 
 Example:
   .venv_ruler/bin/python tools/summarize_ruler_results.py \
-    --model remem-qwen3-8b \
+    --model statemem-qwen3-8b \
     --tasksets synthetic_noqa \
-    --out-prefix reports/ruler_remem-qwen3-8b
+    --out-prefix reports/ruler_statemem-qwen3-8b
 """
 
 from __future__ import annotations
@@ -274,9 +274,9 @@ def _write_task_metric_summary(path: Path, rows: List[SummaryRow]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Summarize RULER benchmark_root outputs into analysis-friendly CSVs.")
-    parser.add_argument("--model", required=True, help="benchmark_root model directory name (e.g. qwen3-8b-ollama, remem-qwen3-8b)")
+    parser.add_argument("--model", required=True, help="benchmark_root model directory name (e.g. qwen3-8b-ollama, statemem-qwen3-8b)")
     parser.add_argument("--tasksets", default="synthetic_noqa", help="comma-separated taskset names under the model directory")
-    parser.add_argument("--out-prefix", required=True, help="Output path prefix (e.g. reports/ruler_remem-qwen3-8b)")
+    parser.add_argument("--out-prefix", required=True, help="Output path prefix (e.g. reports/ruler_statemem-qwen3-8b)")
     parser.add_argument("--date", default="", help="Optional date suffix like 20260501 (matches existing report naming).")
     args = parser.parse_args()
 

@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.adaptive_answer_skill import (
+from statemem.adaptive_answer_skill import (
     AdaptiveAnswerAction,
     apply_adaptive_answer_action,
     build_adaptive_answer_state,

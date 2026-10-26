@@ -32,29 +32,29 @@ if CURRENT_ROOT not in sys.path:
 
 try:
     from mcp.server.fastmcp import FastMCP
-    from memoryos.memoryos import Memoryos
+    from statemem.statemem import statemem
 except ImportError as exc:
     clean_print(f"Import error: {exc}")
     sys.exit(1)
 
 
-memoryos_instance: Optional[Memoryos] = None
-mcp = FastMCP("MemoryOS-Cluster")
+statemem_instance: Optional[statemem] = None
+mcp = FastMCP("statemem-Cluster")
 
 
 @mcp.tool()
 def add_memory(user_input: str, agent_response: str = "ok") -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
     try:
-        memoryos_instance.add_memory(user_input, agent_response)
+        statemem_instance.add_memory(user_input, agent_response)
         return {
             "status": "success",
-            "st_size": len(memoryos_instance.short_term_memory.get_all()),
-            "ingest_result": memoryos_instance.get_last_ingest_result(),
-            "memory_stats": memoryos_instance.get_memory_stats(),
+            "st_size": len(statemem_instance.short_term_memory.get_all()),
+            "ingest_result": statemem_instance.get_last_ingest_result(),
+            "memory_stats": statemem_instance.get_memory_stats(),
         }
     except Exception as exc:
         clean_print(f"Add error: {exc}")
@@ -63,12 +63,12 @@ def add_memory(user_input: str, agent_response: str = "ok") -> Dict[str, Any]:
 
 @mcp.tool()
 def retrieve_memory(query: str, max_results: int = 5, token_budget: int = 2200) -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
     try:
-        res = memoryos_instance.get_response(query, max_results=max_results, token_budget=token_budget)
+        res = statemem_instance.get_response(query, max_results=max_results, token_budget=token_budget)
         return {
             "status": "success",
             "retrieved_pages": res.get("retrieved_pages", []),
@@ -79,8 +79,8 @@ def retrieve_memory(query: str, max_results: int = 5, token_budget: int = 2200) 
             "citations": res.get("citations", []),
             "thought_process": res.get("thought_process", ""),
             "reflection": res.get("reflection", {}),
-            "background_status": memoryos_instance.get_background_status(),
-            "st_count": len(memoryos_instance.short_term_memory.get_all()),
+            "background_status": statemem_instance.get_background_status(),
+            "st_count": len(statemem_instance.short_term_memory.get_all()),
         }
     except Exception as exc:
         clean_print(f"Retrieve error: {exc}")
@@ -89,11 +89,11 @@ def retrieve_memory(query: str, max_results: int = 5, token_budget: int = 2200) 
 
 @mcp.tool()
 def nli_verify(generated_answer: str, citation_ids: list) -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
-    missing_nodes = [node_id for node_id in citation_ids if not memoryos_instance.node_exists(node_id)]
+    missing_nodes = [node_id for node_id in citation_ids if not statemem_instance.node_exists(node_id)]
     if missing_nodes:
         return {
             "status": "error",
@@ -101,7 +101,7 @@ def nli_verify(generated_answer: str, citation_ids: list) -> Dict[str, Any]:
         }
 
     try:
-        result = memoryos_instance.nli_verify_citations(generated_answer, citation_ids)
+        result = statemem_instance.nli_verify_citations(generated_answer, citation_ids)
         return {"status": "success", "result": result}
     except Exception as exc:
         clean_print(f"NLI verification error: {exc}")
@@ -110,16 +110,16 @@ def nli_verify(generated_answer: str, citation_ids: list) -> Dict[str, Any]:
 
 @mcp.tool()
 def apply_soft_decay(half_life_days: int = 7) -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
     try:
-        memoryos_instance.soft_decay_memory(half_life_days=half_life_days)
+        statemem_instance.soft_decay_memory(half_life_days=half_life_days)
         return {
             "status": "success",
             "message": "Soft decay applied successfully.",
-            "memory_stats": memoryos_instance.get_memory_stats(),
+            "memory_stats": statemem_instance.get_memory_stats(),
         }
     except Exception as exc:
         clean_print(f"Soft decay error: {exc}")
@@ -128,12 +128,12 @@ def apply_soft_decay(half_life_days: int = 7) -> Dict[str, Any]:
 
 @mcp.tool()
 def pointer_compress(chunk_id: str) -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
     try:
-        pointer_id = memoryos_instance.pointer_compress(chunk_id)
+        pointer_id = statemem_instance.pointer_compress(chunk_id)
         if not pointer_id:
             return {"status": "error", "message": "Pointer compression failed"}
         return {"status": "success", "pointer_id": pointer_id}
@@ -144,19 +144,19 @@ def pointer_compress(chunk_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 def process_memory_flow(page_ids: List[str], feedback_score: float = 1.0, background: bool = True) -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
 
     try:
-        result = memoryos_instance.post_inference_memory_flow(
+        result = statemem_instance.post_inference_memory_flow(
             page_ids=page_ids,
             feedback_score=feedback_score,
             background=background,
         )
         if background:
             return {"status": "success", **result}
-        return {"status": "success", "result": result, "background_status": memoryos_instance.get_background_status()}
+        return {"status": "success", "result": result, "background_status": statemem_instance.get_background_status()}
     except Exception as exc:
         clean_print(f"Process memory flow error: {exc}")
         return {"status": "error", "message": str(exc)}
@@ -164,19 +164,19 @@ def process_memory_flow(page_ids: List[str], feedback_score: float = 1.0, backgr
 
 @mcp.tool()
 def get_background_status() -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
-    return {"status": "success", "background_status": memoryos_instance.get_background_status()}
+    return {"status": "success", "background_status": statemem_instance.get_background_status()}
 
 
 @mcp.tool()
 def get_user_profile() -> Dict[str, Any]:
-    global memoryos_instance
-    if memoryos_instance is None:
+    global statemem_instance
+    if statemem_instance is None:
         return {"status": "error", "message": "Instance not ready"}
     try:
-        return {"status": "success", "user_profile": memoryos_instance.get_user_profile()}
+        return {"status": "success", "user_profile": statemem_instance.get_user_profile()}
     except Exception as exc:
         clean_print(f"Get user profile error: {exc}")
         return {"status": "error", "message": str(exc)}
@@ -189,7 +189,7 @@ def load_config(config_path: str) -> Dict[str, Any]:
         "openai_api_key": "ollama",
         "openai_base_url": "http://localhost:11434/v1",
         "llm_model": "qwen2.5:7b",
-        "data_storage_path": "./memoryos_data",
+        "data_storage_path": "./statemem_data",
         "embedding_model_name": "nomic-embed-text",
         "short_term_capacity": 20,
         "long_term_knowledge_capacity": 5000,
@@ -206,7 +206,7 @@ def load_config(config_path: str) -> Dict[str, Any]:
 
 
 def main():
-    global memoryos_instance
+    global statemem_instance
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.json")
@@ -214,7 +214,7 @@ def main():
     config = load_config(args.config)
 
     try:
-        memoryos_instance = Memoryos(
+        statemem_instance = statemem(
             user_id=config["user_id"],
             assistant_id=config.get("assistant_id", "local_ai"),
             openai_api_key=config.get("openai_api_key", "ollama"),
@@ -227,7 +227,7 @@ def main():
             keyword_ranker_path=config.get("keyword_ranker_path"),
             enable_storage_backups=config.get("enable_storage_backups", True),
         )
-        clean_print(f"MemoryOS ready (user={config['user_id']})")
+        clean_print(f"statemem ready (user={config['user_id']})")
         mcp.run(transport="stdio")
     except Exception as exc:
         import traceback

@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from memoryos.services.lifecycle_service import LifecycleService
+from statemem.services.lifecycle_service import LifecycleService
 
 
 class DummyClient:
@@ -175,9 +175,9 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         self.assertEqual(reflection["nli"]["contradiction"], ["doc_bad"])
         self.assertEqual(reflection["memory"]["recommended_destination"], "forget_pool")
 
-        memoryos = DummyMemoryos([page])
+        statemem = DummyMemoryos([page])
         result = self.lifecycle.post_inference_memory_flow(
-            memoryos,
+            statemem,
             ["doc_bad"],
             feedback_score=reflection["feedback_score"],
             reflection=reflection,
@@ -191,7 +191,7 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         raw_content = (
             "The user prefers concise, direct answers with bullet-free formatting whenever possible. "
             "They repeatedly ask for short responses and dislike redundant explanation. "
-            "This preference should be remembered for future sessions."
+            "This preference should be statemembered for future sessions."
         )
         page = {
             "page_id": "doc_good",
@@ -226,9 +226,9 @@ class NLIReflectionRoutingTest(unittest.TestCase):
         self.assertEqual(reflection["nli"]["entailment"], ["doc_good"])
         self.assertEqual(reflection["memory"]["recommended_destination"], "long_term")
 
-        memoryos = DummyMemoryos([page])
+        statemem = DummyMemoryos([page])
         result = self.lifecycle.post_inference_memory_flow(
-            memoryos,
+            statemem,
             ["doc_good"],
             feedback_score=reflection["feedback_score"],
             reflection=reflection,

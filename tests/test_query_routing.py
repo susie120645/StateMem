@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.query_routing import (
+from statemem.query_routing import (
     build_retrieval_trace_context,
     infer_answer_mode,
     infer_answer_format,

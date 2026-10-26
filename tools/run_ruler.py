@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Run NVIDIA RULER synthetic benchmark with Remem (MemoryOS) as the inference backend.
+Run NVIDIA RULER synthetic benchmark with statemem (statemem) as the inference backend.
 
 This script:
 1) uses RULER's `prepare.py` to generate synthetic jsonl samples
-2) ingests the (long) context into MemoryOS as durable memory (LTM)
+2) ingests the (long) context into statemem as durable memory (LTM)
 3) answers the question by retrieving relevant chunks + calling the LLM
 4) runs RULER's `evaluate.py` to produce `summary.csv`
 
@@ -16,7 +16,7 @@ Example:
     --llm-model qwen3:8b \\
     --openai-base-url http://127.0.0.1:11534/v1 \\
     --embedding-host http://127.0.0.1:11534 \\
-    --model-name remem-qwen3-8b
+    --model-name statemem-qwen3-8b
 """
 
 from __future__ import annotations
@@ -243,11 +243,11 @@ class RememConfig:
     enable_storage_backups: bool
 
 
-def _build_memoryos(cfg: RememConfig):
-    # Local import so that the script can be imported without initializing MemoryOS.
-    from memoryos.memoryos import Memoryos
+def _build_statemem(cfg: RememConfig):
+    # Local import so that the script can be imported without initializing statemem.
+    from statemem.statemem import statemem
 
-    return Memoryos(
+    return statemem(
         user_id=cfg.user_id,
         assistant_id=cfg.assistant_id,
         openai_api_key=cfg.openai_api_key,
@@ -312,9 +312,9 @@ def _answer_from_pages(
         return f"Error: {exc}"
 
 
-def _predict_task_with_remem(
+def _predict_task_with_statemem(
     *,
-    memoryos: Any,
+    statemem: Any,
     task: str,
     task_file: Path,
     pred_file: Path,
@@ -345,12 +345,12 @@ def _predict_task_with_remem(
                 query = input_text
 
             # Reset per-sample memory to keep RULER iid semantics.
-            memoryos.clear_all()
+            statemem.clear_all()
 
             doc_id = f"ruler_{task}_{index}"
             ingest_started = time.time()
             try:
-                memoryos.add_memory(
+                statemem.add_memory(
                     context,
                     "",
                     meta_data={
@@ -369,7 +369,7 @@ def _predict_task_with_remem(
 
             retrieve_started = time.time()
             try:
-                retrieval_results = memoryos.retriever.retrieve_context(
+                retrieval_results = statemem.retriever.retrieve_context(
                     query,
                     top_k=int(max_results),
                     token_budget=int(token_budget),
@@ -387,8 +387,8 @@ def _predict_task_with_remem(
 
             answer_started = time.time()
             pred_text = _answer_from_pages(
-                client=memoryos.client,
-                model=memoryos.llm_model,
+                client=statemem.client,
+                model=statemem.llm_model,
                 query=query,
                 pages=pages,
                 max_tokens=answer_max_tokens,
@@ -399,7 +399,7 @@ def _predict_task_with_remem(
             if not isinstance(others, dict):
                 others = {}
             others = dict(others)
-            others["remem"] = {
+            others["statemem"] = {
                 "task": task,
                 "subset": subset,
                 "doc_id": doc_id,
@@ -438,12 +438,12 @@ def _predict_task_with_remem(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run RULER synthetic benchmark with Remem (MemoryOS).")
+    parser = argparse.ArgumentParser(description="Run RULER synthetic benchmark with statemem (statemem).")
     parser.add_argument("--taskset", default="synthetic_noqa", help="Taskset name in RULER config_tasks.sh")
     parser.add_argument("--seq-lengths", default="4096,8192,16384,32768")
     parser.add_argument("--num-samples", type=int, default=10)
     parser.add_argument("--subset", default="validation")
-    parser.add_argument("--model-name", default="remem-qwen3-8b")
+    parser.add_argument("--model-name", default="statemem-qwen3-8b")
     parser.add_argument("--benchmark-data", default="synthetic", help="RULER benchmark yaml/constants name (usually synthetic).")
 
     # LLM / embeddings
@@ -453,14 +453,14 @@ def main() -> int:
     parser.add_argument("--embedding-model", default="nomic-embed-text")
     parser.add_argument("--embedding-host", default="")
 
-    # Remem retrieval/generation knobs
+    # statemem retrieval/generation knobs
     parser.add_argument("--max-results", type=int, default=10)
     parser.add_argument("--token-budget", type=int, default=2200)
     parser.add_argument("--answer-max-tokens", type=int, default=128)
     parser.add_argument("--salience-seed", type=float, default=0.95)
 
     # Storage
-    parser.add_argument("--data-storage-root", default=str(REPO_ROOT / "fast_eval_storage" / "ruler_remem"))
+    parser.add_argument("--data-storage-root", default=str(REPO_ROOT / "fast_eval_storage" / "ruler_statemem"))
     parser.add_argument("--short-term-capacity", type=int, default=5)
     parser.add_argument("--long-term-capacity", type=int, default=6000)
     parser.add_argument("--keyword-ranker-path", default=str(REPO_ROOT / "models" / "keyword_ranker.json"))
@@ -515,7 +515,7 @@ def main() -> int:
     data_storage_path = str(Path(args.data_storage_root).resolve() / args.model_name / f"{args.taskset}_{run_id}")
     Path(data_storage_path).mkdir(parents=True, exist_ok=True)
 
-    remem_cfg = RememConfig(
+    statemem_cfg = RememConfig(
         user_id=f"ruler_{args.model_name}_{run_id}",
         assistant_id="ruler_runner",
         openai_api_key=str(args.openai_api_key),
@@ -532,7 +532,7 @@ def main() -> int:
         enable_storage_backups=bool(args.enable_storage_backups),
     )
 
-    memoryos = _build_memoryos(remem_cfg)
+    statemem = _build_statemem(statemem_cfg)
 
     for max_seq_length in seq_lengths:
         results_dir = RULER_BENCHMARK_ROOT / args.model_name / args.taskset / str(max_seq_length)
@@ -574,8 +574,8 @@ def main() -> int:
                 raise FileNotFoundError(f"Task data not found: {task_file}")
 
             pred_file = pred_dir / f"{task}.jsonl"
-            _predict_task_with_remem(
-                memoryos=memoryos,
+            _predict_task_with_statemem(
+                statemem=statemem,
                 task=task,
                 task_file=task_file,
                 pred_file=pred_file,
@@ -600,7 +600,7 @@ def main() -> int:
             )
 
     try:
-        memoryos.shutdown(wait_for_background_tasks=False)
+        statemem.shutdown(wait_for_background_tasks=False)
     except Exception:
         pass
 

@@ -370,7 +370,7 @@ case "$target" in
 
   locomo-conv48)
     report_path="reports/locomo_conv48_${DEFAULT_RUN_TAG}.json"
-    run_cmd "$PYTHON_BIN" memoryos/run_locomo \
+    run_cmd "$PYTHON_BIN" statemem/run_locomo \
       --sample-id conv-48 \
       --llm-model "$DEFAULT_LLM_MODEL" \
       --planner-model "$DEFAULT_LLM_MODEL" \

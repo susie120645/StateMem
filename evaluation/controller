@@ -41,7 +41,7 @@ class EvaluationController:
     # Event 1: New Input Arrives (计算 G0)
     # ------------------------------------------------------------------
     def on_new_input(self, user_input: str, agent_response: str) -> str:
-        """ [G0 算法] 对齐 Memoryos 的存储决策 """
+        """ [G0 算法] 对齐 statemem 的存储决策 """
         g0_score = 0.5
         text = user_input.lower()
         
@@ -62,7 +62,7 @@ class EvaluationController:
         g0_score = min(1.0, max(0.0, g0_score))
         meta = asdict(EvalMetadata(G_base=g0_score))
         
-        # 4. 路由决策：直接对接 Memoryos 的原语
+        # 4. 路由决策：直接对接 statemem 的原语
         if g0_score > 0.4:
             # 进入 STM -> 触发流转
             self.mos.original_add_memory(user_input, agent_response, meta_data=meta)

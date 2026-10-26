@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare LoCoMo evaluation outputs from AgenticMemory and MemoryOS."""
+"""Compare LoCoMo evaluation outputs from AgenticMemory and statemem."""
 
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ def load_agenticmemory(path: Path) -> Tuple[dict, List[dict]]:
     return data, rows
 
 
-def load_memoryos(path: Path) -> Tuple[dict, List[dict]]:
+def load_statemem(path: Path) -> Tuple[dict, List[dict]]:
     data = json.loads(path.read_text())
     rows = []
     for index, row in enumerate(data["records"]):
@@ -108,12 +108,12 @@ def classify_pair(agent: dict, memory: dict) -> str:
             return "agenticmemory_unknown"
         if memory["em"] == 1 and agent["f1"] == 0:
             return "agenticmemory_wrong_fact"
-        return "memoryos_better_match"
+        return "statemem_better_match"
     if agent["f1"] > memory["f1"]:
         if memory_unknown and not agent_unknown:
-            return "memoryos_unknown"
+            return "statemem_unknown"
         if agent["em"] == 1 and memory["f1"] == 0:
-            return "memoryos_wrong_fact"
+            return "statemem_wrong_fact"
         return "agenticmemory_better_match"
     if agent["em"] == 0 and memory["em"] == 0 and agent["f1"] > 0:
         return "both_partial_match"
@@ -152,11 +152,11 @@ def compare_rows(agent_rows: List[dict], memory_rows: List[dict]) -> Tuple[List[
                 memory = memory_signature_rows[index]
                 winner = "tie"
                 if memory["f1"] > agent["f1"]:
-                    winner = "memoryos"
+                    winner = "statemem"
                 elif agent["f1"] > memory["f1"]:
                     winner = "agenticmemory"
                 elif memory["em"] > agent["em"]:
-                    winner = "memoryos"
+                    winner = "statemem"
                 elif agent["em"] > memory["em"]:
                     winner = "agenticmemory"
 
@@ -169,12 +169,12 @@ def compare_rows(agent_rows: List[dict], memory_rows: List[dict]) -> Tuple[List[
                         "agenticmemory_prediction": agent["prediction"],
                         "agenticmemory_em": agent["em"],
                         "agenticmemory_f1": agent["f1"],
-                        "memoryos_prediction": memory["prediction"],
-                        "memoryos_em": memory["em"],
-                        "memoryos_f1": memory["f1"],
+                        "statemem_prediction": memory["prediction"],
+                        "statemem_em": memory["em"],
+                        "statemem_f1": memory["f1"],
                         "winner": winner,
-                        "delta_f1_memoryos_minus_agenticmemory": memory["f1"] - agent["f1"],
-                        "delta_em_memoryos_minus_agenticmemory": memory["em"] - agent["em"],
+                        "delta_f1_statemem_minus_agenticmemory": memory["f1"] - agent["f1"],
+                        "delta_em_statemem_minus_agenticmemory": memory["em"] - agent["em"],
                         "note": classify_pair(agent, memory),
                     }
                 )
@@ -224,9 +224,9 @@ def summarize_categories(compared: List[dict]) -> List[dict]:
                 "count": len(rows),
                 "agenticmemory_em": mean(row["agenticmemory_em"] for row in rows),
                 "agenticmemory_f1": mean(row["agenticmemory_f1"] for row in rows),
-                "memoryos_em": mean(row["memoryos_em"] for row in rows),
-                "memoryos_f1": mean(row["memoryos_f1"] for row in rows),
-                "memoryos_win_count": sum(row["winner"] == "memoryos" for row in rows),
+                "statemem_em": mean(row["statemem_em"] for row in rows),
+                "statemem_f1": mean(row["statemem_f1"] for row in rows),
+                "statemem_win_count": sum(row["winner"] == "statemem" for row in rows),
                 "agenticmemory_win_count": sum(row["winner"] == "agenticmemory" for row in rows),
                 "tie_count": sum(row["winner"] == "tie" for row in rows),
             }
@@ -245,7 +245,7 @@ def full_run_summary_agenticmemory(data: dict, rows: List[dict]) -> dict:
     }
 
 
-def full_run_summary_memoryos(data: dict, rows: List[dict]) -> dict:
+def full_run_summary_statemem(data: dict, rows: List[dict]) -> dict:
     overall = data["overall"]
     return {
         "questions": len(rows),
@@ -264,12 +264,12 @@ def write_csv(path: Path, rows: List[dict]) -> None:
         "agenticmemory_prediction",
         "agenticmemory_em",
         "agenticmemory_f1",
-        "memoryos_prediction",
-        "memoryos_em",
-        "memoryos_f1",
+        "statemem_prediction",
+        "statemem_em",
+        "statemem_f1",
         "winner",
-        "delta_f1_memoryos_minus_agenticmemory",
-        "delta_em_memoryos_minus_agenticmemory",
+        "delta_f1_statemem_minus_agenticmemory",
+        "delta_em_statemem_minus_agenticmemory",
         "note",
     ]
     with path.open("w", newline="") as handle:
@@ -296,54 +296,54 @@ def write_markdown(
     metadata: dict,
 ) -> None:
     memory_wins = sorted(
-        (row for row in compared if row["winner"] == "memoryos"),
-        key=lambda row: (row["delta_f1_memoryos_minus_agenticmemory"], row["delta_em_memoryos_minus_agenticmemory"]),
+        (row for row in compared if row["winner"] == "statemem"),
+        key=lambda row: (row["delta_f1_statemem_minus_agenticmemory"], row["delta_em_statemem_minus_agenticmemory"]),
         reverse=True,
     )
     agent_wins = sorted(
         (row for row in compared if row["winner"] == "agenticmemory"),
-        key=lambda row: (row["delta_f1_memoryos_minus_agenticmemory"], row["delta_em_memoryos_minus_agenticmemory"]),
+        key=lambda row: (row["delta_f1_statemem_minus_agenticmemory"], row["delta_em_statemem_minus_agenticmemory"]),
     )
     lines = [
         "# LoCoMo Run Comparison",
         "",
         f"- AgenticMemory: `{agent_path}`",
-        f"- MemoryOS: `{memory_path}`",
+        f"- statemem: `{memory_path}`",
         "",
         "## Full Run Summary",
         "",
         "| Run | Questions | EM | F1 | Zero-F1 | Unknown-like |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
         f"| AgenticMemory | {agent_summary['questions']} | {format_float(agent_summary['em'])} | {format_float(agent_summary['f1'])} | {agent_summary['zero_f1']} | {agent_summary['unknown_like']} |",
-        f"| MemoryOS | {memory_summary['questions']} | {format_float(memory_summary['em'])} | {format_float(memory_summary['f1'])} | {memory_summary['zero_f1']} | {memory_summary['unknown_like']} |",
+        f"| statemem | {memory_summary['questions']} | {format_float(memory_summary['em'])} | {format_float(memory_summary['f1'])} | {memory_summary['zero_f1']} | {memory_summary['unknown_like']} |",
         "",
         "## Common Questions",
         "",
         f"- Compared questions: {len(compared)}",
-        f"- MemoryOS wins: {sum(row['winner'] == 'memoryos' for row in compared)}",
+        f"- statemem wins: {sum(row['winner'] == 'statemem' for row in compared)}",
         f"- AgenticMemory wins: {sum(row['winner'] == 'agenticmemory' for row in compared)}",
         f"- Ties: {sum(row['winner'] == 'tie' for row in compared)}",
         "",
-        "| Category | Count | AgenticMemory EM | AgenticMemory F1 | MemoryOS EM | MemoryOS F1 | MemoryOS Wins | AgenticMemory Wins | Ties |",
+        "| Category | Count | AgenticMemory EM | AgenticMemory F1 | statemem EM | statemem F1 | statemem Wins | AgenticMemory Wins | Ties |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in category_summary:
         lines.append(
-            f"| {row['category']} | {row['count']} | {format_float(row['agenticmemory_em'])} | {format_float(row['agenticmemory_f1'])} | {format_float(row['memoryos_em'])} | {format_float(row['memoryos_f1'])} | {row['memoryos_win_count']} | {row['agenticmemory_win_count']} | {row['tie_count']} |"
+            f"| {row['category']} | {row['count']} | {format_float(row['agenticmemory_em'])} | {format_float(row['agenticmemory_f1'])} | {format_float(row['statemem_em'])} | {format_float(row['statemem_f1'])} | {row['statemem_win_count']} | {row['agenticmemory_win_count']} | {row['tie_count']} |"
         )
 
     lines.extend(
         [
             "",
-            "## Top MemoryOS Wins",
+            "## Top statemem Wins",
             "",
-            "| Category | Delta F1 | Question | Gold | AgenticMemory | MemoryOS | Note |",
+            "| Category | Delta F1 | Question | Gold | AgenticMemory | statemem | Note |",
             "| --- | ---: | --- | --- | --- | --- | --- |",
         ]
     )
     for row in memory_wins[:15]:
         lines.append(
-            f"| {row['category']} | {format_float(row['delta_f1_memoryos_minus_agenticmemory'])} | {row['question']} | {row['gold_answer']} | {row['agenticmemory_prediction']} | {row['memoryos_prediction']} | {row['note']} |"
+            f"| {row['category']} | {format_float(row['delta_f1_statemem_minus_agenticmemory'])} | {row['question']} | {row['gold_answer']} | {row['agenticmemory_prediction']} | {row['statemem_prediction']} | {row['note']} |"
         )
 
     lines.extend(
@@ -351,13 +351,13 @@ def write_markdown(
             "",
             "## Top AgenticMemory Wins",
             "",
-            "| Category | Delta F1 | Question | Gold | AgenticMemory | MemoryOS | Note |",
+            "| Category | Delta F1 | Question | Gold | AgenticMemory | statemem | Note |",
             "| --- | ---: | --- | --- | --- | --- | --- |",
         ]
     )
     for row in agent_wins[:15]:
         lines.append(
-            f"| {row['category']} | {format_float(-row['delta_f1_memoryos_minus_agenticmemory'])} | {row['question']} | {row['gold_answer']} | {row['agenticmemory_prediction']} | {row['memoryos_prediction']} | {row['note']} |"
+            f"| {row['category']} | {format_float(-row['delta_f1_statemem_minus_agenticmemory'])} | {row['question']} | {row['gold_answer']} | {row['agenticmemory_prediction']} | {row['statemem_prediction']} | {row['note']} |"
         )
 
     lines.extend(
@@ -366,7 +366,7 @@ def write_markdown(
             "## Unmatched Questions",
             "",
             f"- AgenticMemory only: {len(unmatched_agent)}",
-            f"- MemoryOS only: {len(unmatched_memory)}",
+            f"- statemem only: {len(unmatched_memory)}",
             f"- Duplicate normalized question keys skipped: {len(metadata['skipped_duplicates'])}",
         ]
     )
@@ -375,7 +375,7 @@ def write_markdown(
         for row in unmatched_agent[:15]:
             lines.append(f"- `{row['question']}`")
     if unmatched_memory:
-        lines.extend(["", "### MemoryOS Only", ""])
+        lines.extend(["", "### statemem Only", ""])
         for row in unmatched_memory[:15]:
             lines.append(f"- `{row['question']}`")
     if metadata["skipped_duplicates"]:
@@ -389,18 +389,18 @@ def write_markdown(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compare AgenticMemory and MemoryOS LoCoMo outputs.")
+    parser = argparse.ArgumentParser(description="Compare AgenticMemory and statemem LoCoMo outputs.")
     parser.add_argument("--agenticmemory", required=True, type=Path, help="Path to AgenticMemory results JSON")
-    parser.add_argument("--memoryos", required=True, type=Path, help="Path to MemoryOS report JSON")
+    parser.add_argument("--statemem", required=True, type=Path, help="Path to statemem report JSON")
     parser.add_argument("--output-prefix", required=True, type=Path, help="Output path prefix without suffix")
     args = parser.parse_args()
 
     agent_data, agent_rows = load_agenticmemory(args.agenticmemory)
-    memory_data, memory_rows = load_memoryos(args.memoryos)
+    memory_data, memory_rows = load_statemem(args.statemem)
     compared, unmatched_agent, unmatched_memory, metadata = compare_rows(agent_rows, memory_rows)
     category_summary = summarize_categories(compared)
     agent_summary = full_run_summary_agenticmemory(agent_data, agent_rows)
-    memory_summary = full_run_summary_memoryos(memory_data, memory_rows)
+    memory_summary = full_run_summary_statemem(memory_data, memory_rows)
 
     csv_path = args.output_prefix.with_suffix(".csv")
     md_path = args.output_prefix.with_suffix(".md")
@@ -410,7 +410,7 @@ def main() -> None:
     write_markdown(
         md_path,
         args.agenticmemory,
-        args.memoryos,
+        args.statemem,
         agent_summary,
         memory_summary,
         compared,
@@ -422,14 +422,14 @@ def main() -> None:
 
     summary_payload = {
         "agenticmemory": agent_summary,
-        "memoryos": memory_summary,
+        "statemem": memory_summary,
         "compared_questions": len(compared),
-        "memoryos_wins": sum(row["winner"] == "memoryos" for row in compared),
+        "statemem_wins": sum(row["winner"] == "statemem" for row in compared),
         "agenticmemory_wins": sum(row["winner"] == "agenticmemory" for row in compared),
         "ties": sum(row["winner"] == "tie" for row in compared),
         "category_summary": category_summary,
         "unmatched_agenticmemory": [row["question"] for row in unmatched_agent],
-        "unmatched_memoryos": [row["question"] for row in unmatched_memory],
+        "unmatched_statemem": [row["question"] for row in unmatched_memory],
         "duplicate_keys": metadata["skipped_duplicates"],
     }
     json_path.write_text(json.dumps(summary_payload, indent=2))

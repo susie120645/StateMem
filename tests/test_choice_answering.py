@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.choice_answering import (
+from statemem.choice_answering import (
     answer_choice_with_context,
     parse_choice_question,
     maybe_override_abstaining_choice_answer,

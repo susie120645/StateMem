@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from memoryos.forget_memory import ForgetMemory
+from statemem.forget_memory import ForgetMemory
 
 
 class ForgetMemoryArchiveIndexTest(unittest.TestCase):

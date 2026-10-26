@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from memoryos import utils
+from statemem import utils
 
 
 class _FakeResponse:
@@ -41,7 +41,7 @@ class OpenAIClientThinkSettingTest(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("OLLAMA_THINK", None)
             os.environ.pop("OLLAMA_THINK_MODE", None)
-            with patch("memoryos.utils.requests.Session", side_effect=lambda: _FakeSession(calls, payload)):
+            with patch("statemem.utils.requests.Session", side_effect=lambda: _FakeSession(calls, payload)):
                 answer = client.chat_completion(
                     model="qwen3:8b",
                     messages=[{"role": "user", "content": "只回答数字：2+2=?"}],
@@ -64,7 +64,7 @@ class OpenAIClientThinkSettingTest(unittest.TestCase):
         client.client = object()
 
         with patch.dict(os.environ, {"OLLAMA_THINK": "true"}, clear=False):
-            with patch("memoryos.utils.requests.Session", side_effect=lambda: _FakeSession(calls, payload)):
+            with patch("statemem.utils.requests.Session", side_effect=lambda: _FakeSession(calls, payload)):
                 answer = client.chat_completion(
                     model="qwen3:8b",
                     messages=[{"role": "user", "content": "只回答数字：2+2=?"}],

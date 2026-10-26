@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.services.retrieval_service import Retriever
+from statemem.services.retrieval_service import Retriever
 
 
 class _StubShortTermMemory:

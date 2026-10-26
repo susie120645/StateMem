@@ -132,7 +132,7 @@ def _write_manifest(output_root: Path, manifest: Dict) -> Path:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Download benchmark datasets used by Remem runners.")
+    parser = argparse.ArgumentParser(description="Download benchmark datasets used by statemem runners.")
     parser.add_argument(
         "--dataset",
         action="append",

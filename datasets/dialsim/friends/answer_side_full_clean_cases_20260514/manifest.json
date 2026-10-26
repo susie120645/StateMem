@@ -6,12 +6,12 @@
     "session": 5,
     "date": "September 30, 1994",
     "qtype": "easy_qs_ans_w_time",
-    "question": "So, you remember that chat we had back on September 30, 1994? What's that sparkly thing Rachel misplaced and then found again?",
+    "question": "So, you statemember that chat we had back on September 30, 1994? What's that sparkly thing Rachel misplaced and then found again?",
     "true_label": "(C)",
     "support_best_choice": "(C)",
     "template_family": "",
     "row_count": 29,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/01_s01e02_the_sonogram_at_the_end_txt_s5_easy_qs_ans_w_time.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/01_s01e02_the_sonogram_at_the_end_txt_s5_easy_qs_ans_w_time.rows.jsonl"
   },
   {
     "case_id": "02_s02e09_phoebes_dad_txt_s4_hard_qs_past_past",
@@ -20,12 +20,12 @@
     "session": 4,
     "date": "December 14, 1995",
     "qtype": "hard_qs_past_past",
-    "question": "Hey, do you remember how old Mr. geller's kid was back in September 1994?",
+    "question": "Hey, do you statemember how old Mr. geller's kid was back in September 1994?",
     "true_label": "(D)",
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 241,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/02_s02e09_phoebes_dad_txt_s4_hard_qs_past_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/02_s02e09_phoebes_dad_txt_s4_hard_qs_past_past.rows.jsonl"
   },
   {
     "case_id": "03_s02e15_ross_and_rachel_you_know_txt_s10_easy_qs_ans_w_time",
@@ -34,12 +34,12 @@
     "session": 10,
     "date": "February 10, 1996",
     "qtype": "easy_qs_ans_w_time",
-    "question": "Oh my God, do you remember that chat we all had on October 10, 1994? So, what's that thing Joey does with his hands that drives everyone nuts?",
+    "question": "Oh my God, do you statemember that chat we all had on October 10, 1994? So, what's that thing Joey does with his hands that drives everyone nuts?",
     "true_label": "(B)",
     "support_best_choice": "(B)",
     "template_family": "",
     "row_count": 283,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/03_s02e15_ross_and_rachel_you_know_txt_s10_easy_qs_ans_w_time.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/03_s02e15_ross_and_rachel_you_know_txt_s10_easy_qs_ans_w_time.rows.jsonl"
   },
   {
     "case_id": "04_s02e21_the_bullies_txt_s1_hard_qs_past",
@@ -53,7 +53,7 @@
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 319,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/04_s02e21_the_bullies_txt_s1_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/04_s02e21_the_bullies_txt_s1_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "05_s02e23_the_chicken_pox_txt_s7_hard_qs_past_past",
@@ -67,7 +67,7 @@
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 331,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/05_s02e23_the_chicken_pox_txt_s7_hard_qs_past_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/05_s02e23_the_chicken_pox_txt_s7_hard_qs_past_past.rows.jsonl"
   },
   {
     "case_id": "06_s02e23_the_chicken_pox_txt_s11_hard_qs_past",
@@ -81,7 +81,7 @@
     "support_best_choice": "(A)",
     "template_family": "",
     "row_count": 332,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/06_s02e23_the_chicken_pox_txt_s11_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/06_s02e23_the_chicken_pox_txt_s11_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "07_s03e09_the_football_txt_s6_hard_qs_past",
@@ -90,15 +90,15 @@
     "session": 6,
     "date": "November 28, 1996",
     "qtype": "hard_qs_past",
-    "question": "Hey, do you remember who Ross's girlfriend was back on June 24, 1995?",
+    "question": "Hey, do you statemember who Ross's girlfriend was back on June 24, 1995?",
     "true_label": "(A)",
     "support_best_choice": "(A)",
     "template_family": "",
     "row_count": 387,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/07_s03e09_the_football_txt_s6_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/07_s03e09_the_football_txt_s6_hard_qs_past.rows.jsonl"
   },
   {
-    "case_id": "08_s03e11_chandler_cant_remember_which_sister_txt_s6_hard_qs_past",
+    "case_id": "08_s03e11_chandler_cant_statemember_which_sister_txt_s6_hard_qs_past",
     "case_index": 8,
     "episode": "S03E11 Chandler Cant Remember Which Sister.txt",
     "session": 6,
@@ -109,7 +109,7 @@
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 401,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/08_s03e11_chandler_cant_remember_which_sister_txt_s6_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/08_s03e11_chandler_cant_statemember_which_sister_txt_s6_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "09_s03e17_the_ski_trip_txt_s11_hard_qs_past",
@@ -123,7 +123,7 @@
     "support_best_choice": "(C)",
     "template_family": "",
     "row_count": 449,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/09_s03e17_the_ski_trip_txt_s11_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/09_s03e17_the_ski_trip_txt_s11_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "10_s03e18_the_hypnosis_tape_txt_s1_hard_qs_past",
@@ -132,12 +132,12 @@
     "session": 1,
     "date": "March 13, 1997",
     "qtype": "hard_qs_past",
-    "question": "Hey, do you remember who was living next door to Chandler in May 1996?",
+    "question": "Hey, do you statemember who was living next door to Chandler in May 1996?",
     "true_label": "(D)",
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 450,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/10_s03e18_the_hypnosis_tape_txt_s1_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/10_s03e18_the_hypnosis_tape_txt_s1_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "11_s03e21_the_chick_and_the_duck_txt_s4_hard_qs_past",
@@ -146,12 +146,12 @@
     "session": 4,
     "date": "April 18, 1997",
     "qtype": "hard_qs_past",
-    "question": "Hey, do you remember who Ross's girlfriend was back on February 20, 1997?",
+    "question": "Hey, do you statemember who Ross's girlfriend was back on February 20, 1997?",
     "true_label": "(B)",
     "support_best_choice": "(B)",
     "template_family": "",
     "row_count": 468,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/11_s03e21_the_chick_and_the_duck_txt_s4_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/11_s03e21_the_chick_and_the_duck_txt_s4_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "12_s03e21_the_chick_and_the_duck_txt_s8_hard_qs_past_past",
@@ -165,7 +165,7 @@
     "support_best_choice": "(B)",
     "template_family": "",
     "row_count": 470,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/12_s03e21_the_chick_and_the_duck_txt_s8_hard_qs_past_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/12_s03e21_the_chick_and_the_duck_txt_s8_hard_qs_past_past.rows.jsonl"
   },
   {
     "case_id": "13_s03e22_the_screamer_txt_s13_hard_qs_past",
@@ -179,7 +179,7 @@
     "support_best_choice": "(D)",
     "template_family": "",
     "row_count": 479,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/13_s03e22_the_screamer_txt_s13_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/13_s03e22_the_screamer_txt_s13_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "14_s03e23_rosss_thing_txt_s6_hard_qs_past",
@@ -193,7 +193,7 @@
     "support_best_choice": "(C)",
     "template_family": "",
     "row_count": 483,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/14_s03e23_rosss_thing_txt_s6_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/14_s03e23_rosss_thing_txt_s6_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "15_s04e21_the_invitation_txt_s12_hard_qs_past",
@@ -207,7 +207,7 @@
     "support_best_choice": "(C)",
     "template_family": "",
     "row_count": 511,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/15_s04e21_the_invitation_txt_s12_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/15_s04e21_the_invitation_txt_s12_hard_qs_past.rows.jsonl"
   },
   {
     "case_id": "16_s04e02_the_cat_txt_s2_hard_qs_past",
@@ -221,6 +221,6 @@
     "support_best_choice": "(C)",
     "template_family": "",
     "row_count": 513,
-    "rows_jsonl": "/opt/data/private/Remem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/16_s04e02_the_cat_txt_s2_hard_qs_past.rows.jsonl"
+    "rows_jsonl": "/opt/data/private/statemem/datasets/dialsim/friends/answer_side_full_clean_cases_20260514/16_s04e02_the_cat_txt_s2_hard_qs_past.rows.jsonl"
   }
 ]

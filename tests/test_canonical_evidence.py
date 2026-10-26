@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.canonical_evidence import (
+from statemem.canonical_evidence import (
     build_canonical_evidence_trace,
     canonicalize_query,
     extract_fact_tuples,

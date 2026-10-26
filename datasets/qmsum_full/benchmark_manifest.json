@@ -1,8 +1,8 @@
 {
-  "output_root": "/opt/data/private/Remem/datasets/qmsum_full",
+  "output_root": "/opt/data/private/statemem/datasets/qmsum_full",
   "datasets": {
     "qmsum": {
-      "path": "/opt/data/private/Remem/datasets/qmsum_full/qmsum",
+      "path": "/opt/data/private/statemem/datasets/qmsum_full/qmsum",
       "splits": {
         "test": 35
       }

@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "memoryos" / "run_locomo"
-LOADER = importlib.machinery.SourceFileLoader("memoryos_run_locomo", str(MODULE_PATH))
+MODULE_PATH = Path(__file__).resolve().parents[1] / "statemem" / "run_locomo"
+LOADER = importlib.machinery.SourceFileLoader("statemem_run_locomo", str(MODULE_PATH))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
 RUN_LOCOMO = importlib.util.module_from_spec(SPEC)
 LOADER.exec_module(RUN_LOCOMO)

@@ -1,23 +1,23 @@
 {
   "mcpServers": {
-    "memoryos": {
+    "statemem": {
       "command": "/root/miniconda3/envs/memos/bin/python",
       "args": [
-        "/opt/data/private/Remem/server_new.py",
+        "/opt/data/private/statemem/server_new.py",
         "--config",
-        "/opt/data/private/Remem/config.json"
+        "/opt/data/private/statemem/config.json"
       ],
       "env": {},
-      "description": "MemoryOS MCP Server - 智能记忆系统，提供记忆添加、检索和用户画像功能",
+      "description": "statemem MCP Server - 智能记忆系统，提供记忆添加、检索和用户画像功能",
       "capabilities": {
         "tools": [
           {
             "name": "add_memory",
-            "description": "Add new memory to the MemoryOS system. (user_input and assistant_response pair)"
+            "description": "Add new memory to the statemem system. (user_input and assistant_response pair)"
           },
           {
             "name": "retrieve_memory", 
-            "description": "Retrieve related memories and context information from MemoryOS based on the query"
+            "description": "Retrieve related memories and context information from statemem based on the query"
           },
           {
             "name": "get_user_profile",
@@ -26,11 +26,11 @@
         ],
         "resources": [
           {
-            "uri": "memoryos://status",
+            "uri": "statemem://status",
             "name": "MemoryOS系统状态"
           },
           {
-            "uri": "memoryos://config", 
+            "uri": "statemem://config", 
             "name": "MemoryOS配置信息"
           }
         ]

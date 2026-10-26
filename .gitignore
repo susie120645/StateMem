@@ -29,8 +29,8 @@ eval_storage_v2/
 fast_eval_storage/
 hotpot_eval_storage*/
 musique_eval_storage*/
-memoryos_data/
-memoryos_data_test/
+statemem_data/
+statemem_data_test/
 models/
 
 # Generated report artifacts
@@ -43,8 +43,8 @@ locomo_experiment_comparison_*.csv
 locomo_experiment_conclusions_*.md
 locomo_final_table_*.md
 experiment_results.csv
-memoryos_experiment_metrics.csv
-memoryos_final_results.csv
+statemem_experiment_metrics.csv
+statemem_final_results.csv
 amem_hotpot_traces.jsonl
 
 # Local binaries, backups, and embedded repos that should not be pushed to GitHub

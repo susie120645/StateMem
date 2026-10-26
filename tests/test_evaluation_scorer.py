@@ -1,6 +1,6 @@
 import unittest
 
-from memoryos.evaluation.scorer import build_evaluation_result, summarize_score_metrics
+from statemem.evaluation.scorer import build_evaluation_result, summarize_score_metrics
 
 
 class EvaluationScorerTest(unittest.TestCase):

@@ -26,12 +26,12 @@ CURRENT_FILE = Path(__file__).resolve()
 REPO_ROOT = CURRENT_FILE.parents[1]
 MEMORYOS_ROOT = REPO_ROOT.parent
 DEFAULT_DATASET = MEMORYOS_ROOT / "eval" / "locomo10.json"
-RUN_LOCOMO_PATH = REPO_ROOT / "memoryos" / "run_locomo"
+RUN_LOCOMO_PATH = REPO_ROOT / "statemem" / "run_locomo"
 
 if str(REPO_ROOT) not in os.sys.path:
     os.sys.path.insert(0, str(REPO_ROOT))
 
-from memoryos.evaluation.scorer import build_evaluation_result, summarize_score_metrics  # noqa: E402
+from statemem.evaluation.scorer import build_evaluation_result, summarize_score_metrics  # noqa: E402
 
 
 TOKEN_FIELDS = (
@@ -111,7 +111,7 @@ def retry_call(
 
 
 def load_locomo_helpers():
-    loader = importlib.machinery.SourceFileLoader("memoryos_run_locomo", str(RUN_LOCOMO_PATH))
+    loader = importlib.machinery.SourceFileLoader("statemem_run_locomo", str(RUN_LOCOMO_PATH))
     spec = importlib.util.spec_from_loader(loader.name, loader)
     if spec is None:
         raise RuntimeError(f"Unable to load LoCoMo helpers from {RUN_LOCOMO_PATH}")

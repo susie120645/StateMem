@@ -57,7 +57,7 @@ def _parse_transcript_lines(text: str) -> List[Tuple[str, str]]:
 def _recover_qmsum(output_root: Path) -> Dict[str, object]:
     report_path = _largest_result_report(REPO_ROOT.glob("reports/qmsum_*.json"))
     memory_graph_paths = sorted(
-        REPO_ROOT.glob("fast_eval_storage/qmsum_remem/remem-qwen3-8b/test_*/users/*/long_term/memory_graph.json"),
+        REPO_ROOT.glob("fast_eval_storage/qmsum_statemem/statemem-qwen3-8b/test_*/users/*/long_term/memory_graph.json"),
         key=lambda path: _extract_run_id(path.parent.parent.parent.parent),
         reverse=True,
     )
@@ -137,11 +137,11 @@ def _recover_dialsim_friends(output_root: Path) -> Dict[str, object]:
     report_run_id = _extract_run_id(report_path) if report_path is not None else -1
     storage_root = None
     if report_run_id >= 0:
-        candidate = REPO_ROOT / "fast_eval_storage" / "dialsim_remem" / "remem-qwen3-8b" / f"friends_{report_run_id}"
+        candidate = REPO_ROOT / "fast_eval_storage" / "dialsim_statemem" / "statemem-qwen3-8b" / f"friends_{report_run_id}"
         if candidate.exists():
             storage_root = candidate
     if storage_root is None:
-        storage_root = _latest_path(REPO_ROOT.glob("fast_eval_storage/dialsim_remem/remem-qwen3-8b/friends_*"))
+        storage_root = _latest_path(REPO_ROOT.glob("fast_eval_storage/dialsim_statemem/statemem-qwen3-8b/friends_*"))
     if report_path is None or storage_root is None:
         raise FileNotFoundError("No cached DialSim friends report/storage pair found.")
 
@@ -245,7 +245,7 @@ def _recover_dialsim_friends(output_root: Path) -> Dict[str, object]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Recover local benchmark datasets from cached Remem benchmark artifacts.")
+    parser = argparse.ArgumentParser(description="Recover local benchmark datasets from cached statemem benchmark artifacts.")
     parser.add_argument(
         "--dataset",
         action="append",
